@@ -8,6 +8,13 @@ import matplotlib.pyplot as plt
 from tensorflow.examples.tutorials.mnist import input_data
 from progress.bar import Bar
 
+#
+# A simple feedforward neural network, mostly the courtesy of nlintz.
+# This one tries to calculate train accuracy and has a nice little bar with it, 
+# plus some syntactical sugar. 
+#
+
+
 tf.logging.set_verbosity(tf.logging.INFO)
 
 mnist = input_data.read_data_sets("./data/", one_hot=True)
