@@ -1,0 +1,13 @@
+i wanna learn castlevania
+
+* interface vbam somehow
+* be able to control vbam programmatically
+    * maybe just enable program to press certain keys?
+
+* how to detect failure/success state?
+* how to represent inputs/outputs?
+    * nn has to make a decision at every frame of the game
+
+* how to calculate gradient for error?
+    * e.g if you die, how to change the weights accordingly
+
