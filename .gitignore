@@ -1,2 +1,3 @@
 rnn_encoderdecoder/*.tgz
+rnn_encoderdecoer/__pycache__
 data/
