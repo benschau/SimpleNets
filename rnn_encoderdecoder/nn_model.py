@@ -11,8 +11,8 @@ import importlib
 import tensorflow as tf
 import numpy as np
 
-europarl_module = importlib.import_module('input_data')
-europarl = getattr(europarl_module, 'europarl')
+data_module = importlib.import_module('LanguageData')
+LanguageData = getattr(data_module, 'LanguageData')
 
 # Training Parameters
 learning_rate = 0.001
@@ -25,4 +25,7 @@ max_num_input = 50
 timesteps = 28 # timesteps 
 num_hidden = 1000 # hidden layer num of features
 
-data = europarl()
+data = LanguageData()
+
+print(data.english)
+print(data.french)
