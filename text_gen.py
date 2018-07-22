@@ -9,12 +9,6 @@ import random
 import sys
 import io
 
-path = get_file('nietzsche.txt', origin='https://s3.amazonaws.com/text-datasets/nietzsche.txt') 
-with io.open(path, encoding='utf-8') as f:
-    text = f.read().lower()
-
-print('corpus len: {}'.format(len(text)))
-
 chars = sorted(list(set(text)))
 print('total chars: {}'.format(len(chars)))
 
@@ -51,12 +45,25 @@ model.add(Activation('softmax'))
 optimizer = RMSprop(lr=0.01)
 model.compile(loss='categorical_crossentropy', optimizer=optimizer)
 
+
+
+
+
+
+
+
 class Corpus:
-    def __init__(self):
-        pass
+    def __init__(self, _path):
+        path = get_file('nietzsche.txt', origin='https://s3.amazonaws.com/text-datasets/nietzsche.txt') 
+        with io.open(path, encoding='utf-8') as f:
+            self.text = f.read().lower()
+
+        print('corpus len: {}'.format(len(text)))
+        clean()
 
     def clean(self):
-        pass
+        self.text = self.text.decode('utf-8').encode('ascii', 'ignore') 
+        words = self.text.split() 
 
     def vectorize(self):
         pass
