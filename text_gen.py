@@ -9,3 +9,8 @@ import random
 import sys
 import io
 
+DATA_DIR = "data/trump_speeches.txt"
+
+# prep training data
+# using ryanmcdermott's trump speeches dataset, https://github.com/ryanmcdermott/trump-speeches
+data = open(DATA_DIR, 'r')
