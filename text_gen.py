@@ -11,54 +11,88 @@ import numpy as np
 import random 
 import sys
 import io
+import argparse
 
-def get_sample():
-    pass
+def get_sample(model, ckpt_path, ind_to_char, seed): 
+    model.load_weights(ckpt_path)
+    model.compile(loss='categorical_crossentropy', optimizer='adam')
+    
+    chars_size = len(ind_to_char)
+    print("Generating 1000 character sample...")
+    print("Seed: ")
+    for ind in seed:
+        print(ind_to_char[ind], end='', flush=True)
+   
+    for i in range(1000):
+        X = np.reshape(seed, (1, len(seed), 1))
+        print(X)
+        X = X / float(chars_size)
+        pred = model.predict(X, verbose=0)
+        index = np.argmax(pred)
 
-DATA_DIR = "data/donquixote.txt"
+        result = ind_to_char[index]
+        print(result, end='', flush=True)
+        
+        seed.append(result)
+        seed = seed[1:len(seed)]
 
-# prep training data
-data = open(DATA_DIR, 'r').read().lower()
-chars = list(set(data))
-chars_size = len(chars)
+if __name__ == '__main__': 
+    parser = argparse.ArgumentParser(description='Simple training and sampling on a double stacked LSTM.')
+    parser.add_argument('--sample', type=str, help='randomly select a character and produce a string from the given checkpoint path.')
 
-print('total characters: {}'.format(len(data)))
-print('total unique characters/vocab: {}'.format(chars_size))
+    args = parser.parse_args()
 
-index_char = {}
-char_index = {}
-for index, char in enumerate(chars):
-    index_char[index] = char
-    char_index[char] = index
+    DATA_DIR = "data/donquixote.txt"
 
-seq_len = 100
-seqX = []
-seqY = []
-for i in range(len(data) - seq_len):
-    seq_in = data[i:i + seq_len]
-    seq_out = data[i + seq_len]
-    seqX.append([char_index[char] for char in seq_in])
-    seqY.append(char_index[seq_out])
+    # prep training data
+    data = open(DATA_DIR, 'r').read().lower()
+    data = data.encode('utf-8').decode('unicode-escape')
+    chars = list(set(data))
+    chars_size = len(chars)
 
-patterns_size = len(seqX)
+    print('total characters: {}'.format(len(data)))
+    print('total unique characters/vocab: {}'.format(chars_size))
 
-print('total patterns: {}'.format(patterns_size))
-X = np.reshape(seqX, (patterns_size, seq_len, 1))
-X = X / float(chars_size)
-Y = np_utils.to_categorical(seqY)
+    index_char = {}
+    char_index = {}
+    for index, char in enumerate(chars):
+        index_char[index] = char
+        char_index[char] = index
 
-# build the model:
-model = Sequential()
-model.add(LSTM(256, return_sequences=True, input_shape=(X.shape[1], X.shape[2])))
-model.add(LSTM(256))
-model.add(Dropout(0.2))
-model.add(Dense(Y.shape[1], activation='softmax'))
-model.compile(loss='categorical_crossentropy', optimizer='adam')
+    seq_len = 100
+    seqX = []
+    seqY = []
+    for i in range(len(data) - seq_len):
+        seq_in = data[i:i + seq_len]
+        seq_out = data[i + seq_len]
+        seqX.append([char_index[char] for char in seq_in])
+        seqY.append(char_index[seq_out])
 
-model.summary()
+    patterns_size = len(seqX)
 
-fpath = 'checkpoints/donquixote-{epoch:02d}-{loss:.4f}.hdf5'
-ckpt = ModelCheckpoint(fpath, monitor='loss', verbose=1, save_best_only=True, mode='min')
-callbacks_list = [ckpt]
+    print('total patterns: {}'.format(patterns_size))
+    X = np.reshape(seqX, (patterns_size, seq_len, 1))
+    X = X / float(chars_size)
+    Y = np_utils.to_categorical(seqY)
 
-model.fit(X, Y, epochs=20, batch_size=128, callbacks=callbacks_list)
+    # build the model:
+    model = Sequential()
+    model.add(LSTM(256, return_sequences=True, input_shape=(X.shape[1], X.shape[2])))
+    model.add(LSTM(256))
+    model.add(Dropout(0.2))
+    model.add(Dense(Y.shape[1], activation='softmax'))
+    model.compile(loss='categorical_crossentropy', optimizer='adam')
+
+    model.summary()
+    
+    if args.sample is not None:
+        print("Getting model from {}...".format(args.sample))
+        seed = seqX[np.random.randint(0, len(seqX))]
+        get_sample(model, args.sample, index_char, seed)
+        sys.exit()
+
+    fpath = 'checkpoints/donquixote-{epoch:02d}-{loss:.4f}.hdf5'
+    ckpt = ModelCheckpoint(fpath, monitor='loss', verbose=1, save_best_only=True, mode='min')
+    callbacks_list = [ckpt]
+
+    model.fit(X, Y, epochs=10, batch_size=128, callbacks=callbacks_list)
