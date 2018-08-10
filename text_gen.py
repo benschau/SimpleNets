@@ -20,20 +20,18 @@ def get_sample(model, ckpt_path, ind_to_char, seed):
     chars_size = len(ind_to_char)
     print("Generating 1000 character sample...")
     print("Seed: ")
-    for ind in seed:
-        print(ind_to_char[ind], end='', flush=True)
-   
+    print("\"{}\"".format(''.join([ind_to_char[value] for value in seed])))
+
     for i in range(1000):
         X = np.reshape(seed, (1, len(seed), 1))
-        print(X)
         X = X / float(chars_size)
         pred = model.predict(X, verbose=0)
         index = np.argmax(pred)
 
         result = ind_to_char[index]
-        print(result, end='', flush=True)
+        sys.stdout.write(result)
         
-        seed.append(result)
+        seed.append(index)
         seed = seed[1:len(seed)]
 
 if __name__ == '__main__': 
@@ -78,6 +76,7 @@ if __name__ == '__main__':
     # build the model:
     model = Sequential()
     model.add(LSTM(256, return_sequences=True, input_shape=(X.shape[1], X.shape[2])))
+    model.add(Dropout(0.2))
     model.add(LSTM(256))
     model.add(Dropout(0.2))
     model.add(Dense(Y.shape[1], activation='softmax'))
@@ -95,4 +94,4 @@ if __name__ == '__main__':
     ckpt = ModelCheckpoint(fpath, monitor='loss', verbose=1, save_best_only=True, mode='min')
     callbacks_list = [ckpt]
 
-    model.fit(X, Y, epochs=10, batch_size=128, callbacks=callbacks_list)
+    model.fit(X, Y, epochs=20, batch_size=128, callbacks=callbacks_list)
