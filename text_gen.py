@@ -43,10 +43,13 @@ if __name__ == '__main__':
     DATA_DIR = "data/donquixote.txt"
 
     # prep training data
-    data = open(DATA_DIR, 'r').read().lower()
-    data = data.encode('utf-8').decode('unicode-escape')
+    data = open(DATA_DIR, 'r', encoding='utf-8-sig').read().lower()
     chars = list(set(data))
+    print("Vocab: {}".format(chars))
     chars_size = len(chars)
+
+    # TODO: remove all punctuation to try and improve (reduce vocab size)
+
 
     print('total characters: {}'.format(len(data)))
     print('total unique characters/vocab: {}'.format(chars_size))
@@ -56,7 +59,8 @@ if __name__ == '__main__':
     for index, char in enumerate(chars):
         index_char[index] = char
         char_index[char] = index
-
+    
+    # TODO: Use padded sentences instead of chopping right into 100 character parts.
     seq_len = 100
     seqX = []
     seqY = []
@@ -67,13 +71,18 @@ if __name__ == '__main__':
         seqY.append(char_index[seq_out])
 
     patterns_size = len(seqX)
-
+    
+    # TODO: Replace with one-hot encodings
     print('total patterns: {}'.format(patterns_size))
     X = np.reshape(seqX, (patterns_size, seq_len, 1))
     X = X / float(chars_size)
     Y = np_utils.to_categorical(seqY)
 
     # build the model:
+    # TODO: Tune dropout percentages
+    # TODO: Add dropout to input layer
+    # TODO: Consider using stateful=True
+    # TODO: Add more LSTM layers and review performance
     model = Sequential()
     model.add(LSTM(256, return_sequences=True, input_shape=(X.shape[1], X.shape[2])))
     model.add(Dropout(0.2))
@@ -93,5 +102,5 @@ if __name__ == '__main__':
     fpath = 'checkpoints/donquixote-{epoch:02d}-{loss:.4f}.hdf5'
     ckpt = ModelCheckpoint(fpath, monitor='loss', verbose=1, save_best_only=True, mode='min')
     callbacks_list = [ckpt]
-
-    model.fit(X, Y, epochs=20, batch_size=128, callbacks=callbacks_list)
+    
+    model.fit(X, Y, epochs=30, batch_size=128, callbacks=callbacks_list)
