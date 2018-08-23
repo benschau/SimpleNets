@@ -29,15 +29,12 @@ def get_sample(model, ckpt_path, ind_to_char, seed):
         index = np.argmax(pred)
         result = ind_to_char[index]
         
-        seed = seed[1:]
-        seed.append(index)
+        seed = seed[1:] + index
         
-        generated += result
         sys.stdout.write(result)
         sys.stdout.flush()
     
     print()
-    print("Sample: ".format(generated))
 
 if __name__ == '__main__': 
     parser = argparse.ArgumentParser(description='Simple training and sampling on a double stacked LSTM.')
@@ -46,6 +43,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     DATA_DIR = "data/donquixote.txt"
+
+    # TODO: Clean text appropriately- screwing up my samples.
 
     # prep training data
     with open(DATA_DIR, 'r', encoding='utf-8-sig') as f:
